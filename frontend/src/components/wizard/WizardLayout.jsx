@@ -10,25 +10,27 @@ const STEPS = [
     { id: 5, label: 'Custody' },
 ];
 
-const WizardLayout = ({ children, title, currentStep }) => {
+const WizardLayout = ({ children, title, currentStep, isWidget }) => {
     return (
-        <div className="min-h-screen bg-slate-50 font-sans pb-20">
-            {/* Header / Nav */}
-            <header className="bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-30 shadow-sm">
-                <div className="max-w-6xl mx-auto flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <div className="bg-blue-600 w-8 h-8 rounded-lg flex items-center justify-center">
-                            <span className="text-white font-bold text-xl">S</span>
+        <div className={`min-h-screen bg-slate-50 font-sans ${isWidget ? 'pb-0 bg-transparent' : 'pb-20'}`}>
+            {/* Header / Nav - Hide if Widget */}
+            {!isWidget && (
+                <header className="bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-30 shadow-sm">
+                    <div className="max-w-6xl mx-auto flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            <div className="bg-blue-600 w-8 h-8 rounded-lg flex items-center justify-center">
+                                <span className="text-white font-bold text-xl">S</span>
+                            </div>
+                            <span className="text-xl font-bold text-gray-900 tracking-tight">SoloFlow</span>
                         </div>
-                        <span className="text-xl font-bold text-gray-900 tracking-tight">SoloFlow</span>
+                        <div className="text-sm text-gray-500 font-medium">
+                            Financial Declaration Wizard
+                        </div>
                     </div>
-                    <div className="text-sm text-gray-500 font-medium">
-                        Financial Declaration Wizard
-                    </div>
-                </div>
-            </header>
+                </header>
+            )}
 
-            <div className="max-w-6xl mx-auto p-4 md:p-8">
+            <div className={`max-w-6xl mx-auto ${isWidget ? 'p-2' : 'p-4 md:p-8'}`}>
                 {/* Global Progress Bar */}
                 <div className="mb-8 max-w-2xl mx-auto">
                     <div className="relative pt-1">
@@ -51,23 +53,27 @@ const WizardLayout = ({ children, title, currentStep }) => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-                    {/* Main Form Area (Left 2/3) */}
-                    <div className="md:col-span-2">
+                <div className={`grid grid-cols-1 ${isWidget ? '' : 'md:grid-cols-3'} gap-8 items-start`}>
+                    {/* Main Form Area (Expand if Widget) */}
+                    <div className={`${isWidget ? 'col-span-1' : 'md:col-span-2'}`}>
                         <div className="bg-white shadow-xl rounded-2xl border border-slate-200 overflow-hidden">
                             <div className="p-8">
                                 {children}
                             </div>
                         </div>
-                        <p className="text-center text-slate-400 text-xs mt-8">
-                            © 2025 SoloFlow. Secure & Confidential.
-                        </p>
+                        {!isWidget && (
+                            <p className="text-center text-slate-400 text-xs mt-8">
+                                © 2025 SoloFlow. Secure & Confidential.
+                            </p>
+                        )}
                     </div>
 
-                    {/* Sidebar (Right 1/3) - Sticky */}
-                    <div className="hidden md:block md:col-span-1 sticky top-28">
-                        <LiveCalculatorSidebar />
-                    </div>
+                    {/* Sidebar (Right 1/3) - Sticky - Hide if Widget */}
+                    {!isWidget && (
+                        <div className="hidden md:block md:col-span-1 sticky top-28">
+                            <LiveCalculatorSidebar />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

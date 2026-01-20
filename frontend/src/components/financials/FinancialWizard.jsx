@@ -7,7 +7,7 @@ import Step5Custody from '../wizard/Step5Custody';
 import RegistrationModal from '../wizard/RegistrationModal';
 import WizardLayout from '../wizard/WizardLayout';
 
-const FinancialWizard = () => {
+const FinancialWizard = ({ isWidget = false }) => {
   const [step, setStep] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -28,7 +28,7 @@ const FinancialWizard = () => {
 
   return (
     <div className="font-sans antialiased text-gray-900">
-      <WizardLayout title={getStepTitle(step)} currentStep={step}>
+      <WizardLayout title={getStepTitle(step)} currentStep={step} isWidget={isWidget}>
         {step === 1 && <Step1CaseBasics onNext={nextStep} />}
         {step === 2 && <Step2Income onNext={nextStep} onPrev={prevStep} />}
         {step === 3 && <Step3Deductions onNext={nextStep} onPrev={prevStep} />}

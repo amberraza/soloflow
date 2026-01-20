@@ -1,7 +1,7 @@
 Django>=4.2
 djangorestframework>=3.14
 djangorestframework-simplejwt
-corsheaders
+django-cors-headers
 markdown
 django-filter
 psycopg2-binary

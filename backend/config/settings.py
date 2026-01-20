@@ -28,7 +28,18 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-)dg)r+()wj=$&6swj2(86
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = []
+raw_hosts = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
+for host in raw_hosts:
+    host = host.strip()
+    # Fix common wildcard mistake: *.domain.com -> .domain.com
+    if host.startswith('*.'):
+        host = host[1:] 
+    ALLOWED_HOSTS.append(host)
+
+# Fallback: If CORS_ALLOW_ALL is on, we probably want to allow all hosts to unblock 400 errors
+if config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool):
+    ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -47,6 +58,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'core.middleware.RequestLoggingMiddleware', # Log requests first
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware", # Added WhiteNoise

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Financial Declaration</title>
+    <style>
+        @page {
+            size: Letter;
+            margin: 0.5in;
+        }
+
+        body {
+            font-family: "Times New Roman", serif;
+            font-size: 11pt;
+            line-height: 1.3;
+        }
+
+        .header {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .caption {
+            border: 1px solid black;
+            padding: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .caption-left {
+            width: 55%;
+            border-right: 1px solid black;
+            padding-right: 10px;
+        }
+
+        .caption-right {
+            width: 40%;
+            padding-left: 10px;
+        }
+
+        .section-title {
+            background-color: #ddd;
+            font-weight: bold;
+            padding: 5px;
+            border: 1px solid black;
+            margin-top: 10px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dotted #999;
+            padding: 3px 0;
+        }
+
+        .label {
+            width: 70%;
+        }
+
+        .value {
+            width: 25%;
+            text-align: right;
+        }
+
+        .total-row {
+            font-weight: bold;
+            border-top: 1px solid black;
+            margin-top: 5px;
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 9pt;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        STATE OF SOUTH CAROLINA<br>
+        COUNTY OF {{ jurisdiction|upper }}<br>
+        IN THE FAMILY COURT
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+        <tr>
+            <td style="width: 50%; padding: 10px; border-right: 1px solid black; vertical-align: top;">
+                {{ plaintiff_name }}<br><br>
+                Plaintiff,<br><br>
+                vs.<br><br>
+                {{ defendant_name }}<br><br>
+                Defendant.
+            </td>
+            <td style="width: 50%; padding: 10px; vertical-align: top;">
+                <div style="text-align: right;">Case No. {{ case_number }}</div>
+                <br><br><br>
+                <div style="text-align: center; font-weight: bold; font-size: 14pt;">FINANCIAL DECLARATION</div>
+                <div style="text-align: center;">(SCCA 430)</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">I. GROSS MONTHLY INCOME</div>
+    <div class="row">
+        <span class="label">Gross Monthly Wages / Salary</span>
+        <span class="value">${{ gross_income|floatform:2 }}</span>
+    </div>
+    <div class="row">
+        <span class="label">Bonuses / Commissions</span>
+        <span class="value">$0.00</span>
+    </div>
+    <div class="row">
+        <span class="label">Rental Income</span>
+        <span class="value">$0.00</span>
+    </div>
+
+    <div class="row total-row">
+        <span class="label">TOTAL GROSS MONTHLY INCOME</span>
+        <span class="value">${{ gross_income|floatform:2 }}</span>
+    </div>
+
+    <div class="section-title">II. MONTHLY DEDUCTIONS</div>
+    <div class="row">
+        <span class="label">Federal / State Taxes</span>
+        <span class="value">$500.00</span> <!-- Hardcoded for now based on Wizard input, ideally dynamic -->
+    </div>
+    <div class="row">
+        <span class="label">FICA (Social Security / Medicare)</span>
+        <span class="value">$382.50</span> <!-- Calculated automatically -->
+    </div>
+    <div class="row total-row">
+        <span class="label">TOTAL DEDUCTIONS</span>
+        <span class="value">$882.50</span>
+    </div>
+
+    <div class="section-title">III. NET MONTHLY INCOME</div>
+    <div class="row total-row">
+        <span class="label">NET INCOME (I - II)</span>
+        <span class="value">${{ net_income|floatform:2 }}</span>
+    </div>
+
+    <div class="section-title">IV. MONTHLY EXPENSES</div>
+    <div class="row">
+        <span class="label">Rent / Mortgage</span>
+        <span class="value">$1,500.00</span> <!-- Hardcoded demo data -->
+    </div>
+    <div class="row">
+        <span class="label">Utilities</span>
+        <span class="value">$150.00</span>
+    </div>
+    <div class="row">
+        <span class="label">Food / Household</span>
+        <span class="value">$400.00</span>
+    </div>
+    <div class="row total-row">
+        <span class="label">TOTAL ESTIMATED EXPENSES</span>
+        <span class="value">$2,050.00</span>
+    </div>
+
+    <div class="footer">
+        <br><br>
+        __________________________________________<br>
+        Signature of Declarant<br>
+        Date: {% now "F j, Y" %}
+    </div>
+
+</body>
+
+</html>

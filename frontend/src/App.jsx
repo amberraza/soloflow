@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import FinancialWizard from './components/financials/FinancialWizard';
+import Dashboard from './components/Dashboard';
 import './App.css';
 
 function Home() {
@@ -13,10 +14,6 @@ function Home() {
       </Link>
     </div>
   );
-}
-
-function Dashboard() {
-  return <div className="p-8"><h1 className="text-2xl font-bold">Dashboard (Protected)</h1></div>;
 }
 
 function App() {

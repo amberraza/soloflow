@@ -87,6 +87,7 @@ class StripeWebhookView(APIView):
         
 from .services.onboarding import process_wizard_data
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
@@ -117,4 +118,10 @@ class RegisterView(APIView):
                 user.delete() # Simple rollback for now
                 return Response({"error": f"Failed to process wizard data: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"status": "User created", "user_id": user.id}, status=status.HTTP_201_CREATED)
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "status": "User created",
+            "user_id": user.id,
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }, status=status.HTTP_201_CREATED)

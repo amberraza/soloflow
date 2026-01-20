@@ -31,9 +31,11 @@ const RegistrationModal = ({ isOpen, onClose }) => {
             const data = await response.json();
 
             if (response.ok) {
-                alert("Account created! Your data has been saved. Redirecting to dashboard...");
-                // In a real app, we would auto-login and redirect here.
-                // For MVP:
+                // Store tokens
+                localStorage.setItem('access_token', data.access);
+                localStorage.setItem('refresh_token', data.refresh);
+
+                alert("Account created! Redirecting to dashboard...");
                 window.location.href = '/dashboard';
             } else {
                 setError(data.error || "Registration failed");

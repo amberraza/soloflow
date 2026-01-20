@@ -1,5 +1,6 @@
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from financials.models import FinancialAffidavit
@@ -10,19 +11,30 @@ def generate_financial_declaration_pdf(affidavit: FinancialAffidavit):
     Generates a PDF for the SCCA 430 Financial Declaration using ReportLab.
     """
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    # Reduce margins to 0.5 inch (default is 1 inch) to fit everything on one page
+    doc = SimpleDocTemplate(
+        buffer, 
+        pagesize=letter,
+        rightMargin=0.5*inch,
+        leftMargin=0.5*inch,
+        topMargin=0.5*inch,
+        bottomMargin=0.5*inch
+    )
     elements = []
     
     styles = getSampleStyleSheet()
     title_style = styles['Heading1']
     title_style.alignment = 1 # Center
+    title_style.fontSize = 14 # Reduce title size slightly
+    title_style.leading = 16 
+
     normal_style = styles['Normal']
 
     # Header
     elements.append(Paragraph("STATE OF SOUTH CAROLINA", title_style))
     elements.append(Paragraph(f"COUNTY OF {(affidavit.matter.jurisdiction or 'UNKNOWN').upper()}", title_style))
     elements.append(Paragraph("IN THE FAMILY COURT", title_style))
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 10))
 
     # Caption Table
     client = affidavit.matter.client
@@ -39,7 +51,7 @@ def generate_financial_declaration_pdf(affidavit: FinancialAffidavit):
         ('LINEAFTER', (0,0), (0,-1), 1, colors.black),
     ]))
     elements.append(t)
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 15))
 
     # Financial Data
     gross = float(affidavit.gross_wages)
@@ -90,7 +102,7 @@ def generate_financial_declaration_pdf(affidavit: FinancialAffidavit):
     ])
     
     # Footer
-    elements.append(Spacer(1, 40))
+    elements.append(Spacer(1, 25))
     elements.append(Paragraph("__________________________________________", normal_style))
     elements.append(Paragraph("Signature of Declarant", normal_style))
     

@@ -140,8 +140,17 @@ AUTH_USER_MODEL = 'core.User'
 raw_cors_origins = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5173,http://127.0.0.1:5173')
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in raw_cors_origins.split(',') if origin.strip()]
 
+# Debugging: Allow overriding strict CORS with a wildcard via Env Var
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
+
 # Django 4.0+ requires CSRF_TRUSTED_ORIGINS for cross-origin POSTs
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS[:]
+
+# DEBUG LOGGING (Prints to Railway Logs)
+import sys
+print(f"DEBUG: ALLOWED_HOSTS={ALLOWED_HOSTS}", file=sys.stderr)
+print(f"DEBUG: CORS_ALLOWED_ORIGINS={CORS_ALLOWED_ORIGINS}", file=sys.stderr)
+print(f"DEBUG: CORS_ALLOW_ALL_ORIGINS={CORS_ALLOW_ALL_ORIGINS}", file=sys.stderr)
 
 from corsheaders.defaults import default_headers
 

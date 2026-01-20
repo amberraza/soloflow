@@ -1,7 +1,17 @@
 from django.db import transaction
-from core.models import Firm, Client, Matter
-from financials.models import FinancialAffidavit
+from django.apps import apps
+from django.conf import settings
 from decimal import Decimal
+
+# Lazy load models to verify import safety or use apps.get_model
+# Ideally import normally, but if 500ing, might be import error.
+from financials.models import FinancialAffidavit
+
+def get_core_models():
+    Firm = apps.get_model('core', 'Firm')
+    Client = apps.get_model('core', 'Client')
+    Matter = apps.get_model('core', 'Matter')
+    return Firm, Client, Matter
 
 def process_wizard_data(user, wizard_data):
     """

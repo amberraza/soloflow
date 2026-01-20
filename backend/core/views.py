@@ -99,29 +99,36 @@ class RegisterView(APIView):
         password = request.data.get('password')
         wizard_data = request.data.get('initial_wizard_data')
 
-        if not username or not password:
-            return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            if not username or not password:
+                return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if User.objects.filter(username=username).exists():
-            return Response({"error": "User already exists"}, status=status.HTTP_400_BAD_REQUEST)
+            if User.objects.filter(username=username).exists():
+                return Response({"error": "User already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.create_user(username=username, password=password)
-        
-        if wizard_data:
-            try:
-                process_wizard_data(user, wizard_data)
-            except Exception as e:
-                # Log error but don't fail registration? Or fail? 
-                # Better to fail transaction if important data is lost.
-                # But process_wizard_data handles transaction.atomic internally?
-                # Actually, wrapping the whole thing is safer.
-                user.delete() # Simple rollback for now
-                return Response({"error": f"Failed to process wizard data: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            user = User.objects.create_user(username=username, password=password)
+            
+            if wizard_data:
+                try:
+                    process_wizard_data(user, wizard_data)
+                except Exception as e:
+                    # Log error but don't fail registration? Or fail? 
+                    # Better to fail transaction if important data is lost.
+                    # But process_wizard_data handles transaction.atomic internally?
+                    # Actually, wrapping the whole thing is safer.
+                    user.delete() # Simple rollback for now
+                    return Response({"error": f"Failed to process wizard data: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            "status": "User created",
-            "user_id": user.id,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        }, status=status.HTTP_201_CREATED)
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                "status": "User created",
+                "user_id": user.id,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"CRITICAL REGISTRATION ERROR: {error_details}")
+            return Response({"error": f"Internal Server Error: {str(e)}", "details": error_details}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

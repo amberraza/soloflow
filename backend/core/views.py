@@ -7,6 +7,15 @@ from rest_framework.throttling import AnonRateThrottle
 class IntakeThrottle(AnonRateThrottle):
     rate = '5/min'
 
+class IntakeThrottle(AnonRateThrottle):
+    rate = '5/min'
+
+class HealthCheckView(APIView):
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+    def get(self, request):
+        return Response({"status": "ok", "message": "Backend is reachable"}, status=status.HTTP_200_OK)
+
 class PublicIntakeView(APIView):
     authentication_classes = [] # Public endpoint
     permission_classes = [permissions.AllowAny]

@@ -35,4 +35,9 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Start command
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Copy and setup start script
+COPY start.sh /app/
+RUN chmod +x /app/start.sh
+
+# Start command
+CMD ["/app/start.sh"]

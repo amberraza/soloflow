@@ -136,7 +136,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'core.User'
 
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5173,http://127.0.0.1:5173').split(',')
+# Parse comma-separated list and strip whitespace
+raw_cors_origins = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5173,http://127.0.0.1:5173')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in raw_cors_origins.split(',') if origin.strip()]
+
+# Django 4.0+ requires CSRF_TRUSTED_ORIGINS for cross-origin POSTs
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS[:]
 
 from corsheaders.defaults import default_headers
 

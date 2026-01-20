@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; line-height: 1.5; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .content { margin-bottom: 20px; }
+        .signature { margin-top: 50px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>RETAINER AGREEMENT</h1>
+        <h3>{{ firm.name }}</h3>
+    </div>
+
+    <div class="content">
+        <p><strong>Date:</strong> {{ date }}</p>
+        <p><strong>Client:</strong> {{ client.first_name }} {{ client.last_name }}</p>
+        <p><strong>Matter:</strong> {{ matter.title }}</p>
+    </div>
+
+    <div class="content">
+        <p>This agreement is made between {{ firm.name }} ("Firm") and {{ client.first_name }} {{ client.last_name }} ("Client").</p>
+        
+        <h4>1. Scope of Services</h4>
+        <p>The Firm agrees to represent Client in the matter regarding: {{ matter.practice_area }} - {{ matter.title }}.</p>
+
+        <h4>2. Fees</h4>
+        <p>Client agrees to pay the Firm at the agreed upon hourly rates or contingency fee.</p>
+
+        <h4>3. Deposit</h4>
+        <p>A retainer deposit of $2,000.00 is required to be deposited into the Firm's Trust Account.</p>
+    </div>
+
+    <div class="signature">
+        <p>__________________________</p>
+        <p>{{ client.first_name }} {{ client.last_name }}</p>
+        <p>Client</p>
+    </div>
+</body>
+</html>

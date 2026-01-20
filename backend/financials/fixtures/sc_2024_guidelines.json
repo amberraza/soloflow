@@ -1,0 +1,32 @@
+[
+  {
+    "model": "financials.BasicObligationSchedule",
+    "pk": 1,
+    "fields": {
+      "combined_gross_income": "1000.00",
+      "one_child": "200.00",
+      "two_children": "300.00",
+      "three_children": "400.00"
+    }
+  },
+  {
+      "model": "financials.BasicObligationSchedule",
+      "pk": 2,
+      "fields": {
+        "combined_gross_income": "2000.00",
+        "one_child": "400.00",
+        "two_children": "600.00",
+        "three_children": "800.00"
+      }
+  },
+  {
+      "model": "financials.BasicObligationSchedule",
+      "pk": 3,
+      "fields": {
+        "combined_gross_income": "8000.00",
+        "one_child": "1200.00",
+        "two_children": "1800.00",
+        "three_children": "2200.00"
+      }
+  }
+]

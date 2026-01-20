@@ -1,0 +1,11 @@
+Django>=4.2,<5.0
+djangorestframework
+celery
+redis
+stripe
+weasyprint
+pytest-django
+psycopg2-binary
+gunicorn
+django-cors-headers
+python-dotenv

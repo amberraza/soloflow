@@ -22,6 +22,8 @@ def process_wizard_data(user, wizard_data):
     Creates a FinancialAffidavit populated with the data.
     """
     with transaction.atomic():
+        Firm, Client, Matter = get_core_models()
+
         # 1. Ensure Firm (If user signed up directly, might not have one yet)
         if hasattr(user, 'firm') and user.firm:
             firm = user.firm

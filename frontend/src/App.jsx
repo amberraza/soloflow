@@ -33,6 +33,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/tools/financial-wizard" element={<FinancialWizard />} />
+        <Route path="/intake/new" element={<FinancialWizard />} />
         <Route path="/intake/embed/:firmId" element={<WidgetPage />} />
 
         {/* Dashboard Routes */}

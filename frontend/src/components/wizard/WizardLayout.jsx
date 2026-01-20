@@ -1,6 +1,7 @@
 import React from 'react';
 import LiveCalculatorSidebar from './LiveCalculatorSidebar';
 import { Check } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const STEPS = [
     { id: 1, label: 'Case Basics' },
@@ -17,12 +18,12 @@ const WizardLayout = ({ children, title, currentStep, isWidget }) => {
             {!isWidget && (
                 <header className="bg-white border-b border-gray-200 px-8 py-4 sticky top-0 z-30 shadow-sm">
                     <div className="max-w-6xl mx-auto flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
+                        <Link to="/dashboard" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
                             <div className="bg-blue-600 w-8 h-8 rounded-lg flex items-center justify-center">
                                 <span className="text-white font-bold text-xl">S</span>
                             </div>
                             <span className="text-xl font-bold text-gray-900 tracking-tight">SoloFlow</span>
-                        </div>
+                        </Link>
                         <div className="text-sm text-gray-500 font-medium">
                             Financial Declaration Wizard
                         </div>

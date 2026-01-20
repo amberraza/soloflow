@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Download, FileText, Search, Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const MattersView = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -50,9 +51,9 @@ const MattersView = () => {
                     <h1 className="text-2xl font-bold text-slate-900">Active Matters</h1>
                     <p className="text-slate-500">Manage your cases and documents.</p>
                 </div>
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-sm">
+                <Link to="/intake/new" className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-sm">
                     <Plus size={18} /> New Matter
-                </button>
+                </Link>
             </div>
 
             {/* Search/Filter Bar */}

@@ -13,8 +13,9 @@ const Dashboard = () => {
 
     const handleDownloadPDF = async () => {
         setIsLoading(true);
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
         try {
-            const response = await fetch('http://localhost:8000/api/v1/financials/generate-scca-430-pdf/', {
+            const response = await fetch(`${API_URL}/api/v1/financials/generate-scca-430-pdf/`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,

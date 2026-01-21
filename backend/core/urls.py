@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PublicIntakeView, GenerateRetainerView, TrustBalanceView, StripeWebhookView, RegisterView, HealthCheckView, SubmitIntakeView, MatterListView
+from .views import PublicIntakeView, GenerateRetainerView, TrustBalanceView, StripeWebhookView, RegisterView, HealthCheckView, SubmitIntakeView, MatterListView, MatterDetailView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -17,4 +17,5 @@ urlpatterns = [
     path('health/', HealthCheckView.as_view(), name='health-check'),
     path('intake/submit/', SubmitIntakeView.as_view(), name='submit-intake'),
     path('matters/', MatterListView.as_view(), name='matter-list'),
+    path('matters/<uuid:pk>/', MatterDetailView.as_view(), name='matter-detail'),
 ]

@@ -189,3 +189,17 @@ class MatterListView(APIView):
             })
             
         return Response(data, status=status.HTTP_200_OK)
+
+class MatterDetailView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk):
+        if not request.user.firm:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+            
+        try:
+            matter = Matter.objects.get(id=pk, client__firm=request.user.firm)
+            matter.delete()
+            return Response({"status": "deleted"}, status=status.HTTP_204_NO_CONTENT)
+        except Matter.DoesNotExist:
+            return Response({"error": "Matter not found"}, status=status.HTTP_404_NOT_FOUND)

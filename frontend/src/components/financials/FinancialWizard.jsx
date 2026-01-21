@@ -25,13 +25,15 @@ const FinancialWizard = ({ isWidget = false }) => {
       // Logged in: Submit directly
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const freshWizardData = useFinancialStore.getState().wizardData;
+
         const response = await fetch(`${API_URL}/api/v1/intake/submit/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ wizardData })
+          body: JSON.stringify({ wizard_data: freshWizardData })
         });
 
         if (response.ok) {

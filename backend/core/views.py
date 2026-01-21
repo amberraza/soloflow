@@ -175,7 +175,7 @@ class MatterListView(APIView):
         if not request.user.firm:
             return Response([], status=status.HTTP_200_OK)
             
-        matters = Matter.objects.filter(client__firm=request.user.firm).select_related('client')
+        matters = Matter.objects.filter(client__firm=request.user.firm).select_related('client').order_by('-created_at')
         
         data = []
         for m in matters:

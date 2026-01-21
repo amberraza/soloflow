@@ -26,6 +26,7 @@ class CalculateChildSupportView(APIView):
 from django.http import HttpResponse
 from .services.pdf_generator import generate_financial_declaration_pdf
 from .models import FinancialAffidavit
+from core.models import Matter # Import Matter for lookup
 
 class GenerateSCCA430View(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -45,15 +46,23 @@ class GenerateSCCA430View(APIView):
                  return Response({"error": "User has no firm"}, status=status.HTTP_400_BAD_REQUEST)
 
             firm = request.user.firm
-            # For MVP, assume the first client is the one we want (Wizard creates 1 client)
-            client = firm.client_set.first() 
-            
-            if not client:
-                 return Response({"error": "No client found for this firm"}, status=status.HTTP_404_NOT_FOUND)
+            matter_id = request.query_params.get('matter_id')
 
-            matter = client.matter_set.first()
-            if not matter:
-                 return Response({"error": "No matter found"}, status=status.HTTP_404_NOT_FOUND)
+            if matter_id:
+                # Specific valid matter requested
+                try:
+                    matter = Matter.objects.get(id=matter_id, client__firm=firm)
+                    client = matter.client
+                except Matter.DoesNotExist:
+                     return Response({"error": "Matter not found or unauthorized"}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                 # Fallback (Legacy/Dev safety)
+                client = firm.client_set.first() 
+                if not client:
+                     return Response({"error": "No client found for this firm"}, status=status.HTTP_404_NOT_FOUND)
+                matter = client.matter_set.first()
+                if not matter:
+                     return Response({"error": "No matter found"}, status=status.HTTP_404_NOT_FOUND)
             
             affidavit = FinancialAffidavit.objects.filter(matter=matter).last()
             if not affidavit:

@@ -38,6 +38,7 @@ const FinancialWizard = ({ isWidget = false }) => {
 
         if (response.ok) {
           // Success - Redirect to Dashboard
+          useFinancialStore.getState().reset();
           navigate('/dashboard');
         } else {
           const err = await response.json();

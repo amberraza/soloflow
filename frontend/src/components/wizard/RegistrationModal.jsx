@@ -37,6 +37,7 @@ const RegistrationModal = ({ isOpen, onClose }) => {
                 localStorage.setItem('access_token', data.access);
                 localStorage.setItem('refresh_token', data.refresh);
 
+                useFinancialStore.getState().reset();
                 alert("Account created! Redirecting to dashboard...");
                 window.location.href = '/dashboard';
             } else {

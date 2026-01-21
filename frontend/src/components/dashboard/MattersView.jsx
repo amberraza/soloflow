@@ -6,6 +6,7 @@ import EditMatterModal from './EditMatterModal';
 const MattersView = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [matters, setMatters] = useState([]);
+    const [editingMatter, setEditingMatter] = useState(null);
     const [token] = useState(localStorage.getItem('access_token'));
 
     useEffect(() => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Download, FileText, Search, Plus, Trash2 } from 'lucide-react';
+import { Download, FileText, Search, Plus, Trash2, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import EditMatterModal from './EditMatterModal';
 
 const MattersView = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -76,6 +77,31 @@ const MattersView = () => {
         }
     };
 
+    const handleEdit = async (matterId, updatedData) => {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        try {
+            const response = await fetch(`${API_URL}/api/v1/matters/${matterId}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (response.ok) {
+                const updatedMatter = await response.json();
+                setMatters(prev => prev.map(m => m.id === matterId ? { ...m, title: updatedMatter.title, case_number: updatedMatter.case_number, status: updatedMatter.status } : m));
+                setEditingMatter(null); // Close modal
+            } else {
+                alert("Failed to update matter");
+            }
+        } catch (error) {
+            console.error("Update error", error);
+            alert("Network error");
+        }
+    };
+
     const handleDelete = async (matterId) => {
         if (!window.confirm("Are you sure you want to delete this matter? This cannot be undone.")) {
             return;
@@ -142,7 +168,7 @@ const MattersView = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-lg text-slate-900">{matter.client_name} - {matter.title}</h3>
-                                        <div className="text-sm text-slate-500 mb-2">Case #: {matter.case_number}</div>
+                                        <div className="text-sm text-slate-500 mb-2">Case #: {matter.case_number || 'N/A'}</div>
                                         <div className="flex gap-2 mt-2">
                                             <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold uppercase">{matter.status}</span>
                                             <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-bold uppercase">{matter.practice_area}</span>
@@ -164,19 +190,35 @@ const MattersView = () => {
                                             </>
                                         )}
                                     </button>
-                                    <button
-                                        onClick={() => handleDelete(matter.id)}
-                                        className="text-red-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors"
-                                        title="Delete Matter"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => setEditingMatter(matter)}
+                                            className="text-blue-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                                            title="Edit Matter"
+                                        >
+                                            <Pencil size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(matter.id)}
+                                            className="text-red-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                                            title="Delete Matter"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     ))
                 )}
             </div>
+
+            <EditMatterModal
+                isOpen={!!editingMatter}
+                onClose={() => setEditingMatter(null)}
+                matter={editingMatter}
+                onSave={handleEdit}
+            />
         </div>
     );
 };

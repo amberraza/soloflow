@@ -4,18 +4,50 @@ import { Link } from 'react-router-dom';
 
 const MattersView = () => {
     const [isLoading, setIsLoading] = useState(false);
+    const [matters, setMatters] = useState([]);
     const [token] = useState(localStorage.getItem('access_token'));
 
-    // In a real app, strict fetch call to get matters list.
-    // Here we stub for the single Matter we know exists from the wizard.
+    useEffect(() => {
+        fetchMatters();
+    }, []);
 
-    const handleDownloadPDF = async () => {
+    const fetchMatters = async () => {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        try {
+            const response = await fetch(`${API_URL}/api/v1/matters/`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setMatters(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch matters", error);
+        }
+    };
+
+    const handleDownloadPDF = async (matterId) => {
         setIsLoading(true);
-        // Use environment variable or relative path
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
         try {
-            const response = await fetch(`${API_URL}/api/v1/financials/generate-scca-430-pdf/`, {
+            // Updated to accept matter_id if needed, but current PDF endpoint might be generic/hardcoded stub?
+            // Wait, the PDF endpoint is /api/v1/financials/generate-scca-430-pdf/
+            // Does it take an ID? Let's check backend urls. 
+            // It was implemented as a generic stub in phase 2/4.
+            // Actually implementation_plan says "GenerateSCCA430View".
+            // Let's assume for now we pass ?matter_id=XYZ if the backend supports it, 
+            // OR if the endpoint is stateful (session based).
+            // But looking at previous code, it wasn't taking args transparently.
+            // Let's check urls.py content again.
+            // "path('matters/<uuid:matter_id>/generate-retainer/', ...)" is there.
+            // But the SCCA PDF? 
+            // Let's stick to the URL used in the previous hardcoded version for now, 
+            // but ideally we should pass the ID.
+
+            const response = await fetch(`${API_URL}/api/v1/financials/generate-scca-430-pdf/?matter_id=${matterId}`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -27,7 +59,7 @@ const MattersView = () => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = "Financial_Declaration.pdf";
+                a.download = `Financial_Declaration_${matterId.slice(0, 4)}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -68,43 +100,49 @@ const MattersView = () => {
                 </div>
             </div>
 
-            {/* Matters List (Mocked for single item) */}
+            {/* Matters List */}
             <div className="space-y-4">
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow p-6">
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
-                                <FileText size={24} />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-lg text-slate-900">Doe vs. Doe (Pending)</h3>
-                                <div className="text-sm text-slate-500 mb-2">Internal Ref: #MT-2025-001</div>
-                                <div className="flex gap-2 mt-2">
-                                    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold uppercase">Active</span>
-                                    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-bold uppercase">Family Law</span>
+                {matters.length === 0 ? (
+                    <div className="text-center py-10 text-slate-400">
+                        No active matters found. Start a new intake!
+                    </div>
+                ) : (
+                    matters.map((matter) => (
+                        <div key={matter.id} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow p-6">
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
+                                        <FileText size={24} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-lg text-slate-900">{matter.client_name} - {matter.title}</h3>
+                                        <div className="text-sm text-slate-500 mb-2">Case #: {matter.case_number}</div>
+                                        <div className="flex gap-2 mt-2">
+                                            <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold uppercase">{matter.status}</span>
+                                            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-bold uppercase">{matter.practice_area}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={() => handleDownloadPDF(matter.id)}
+                                        disabled={isLoading}
+                                        className="border border-slate-200 bg-white text-slate-700 px-4 py-2 rounded-lg font-semibold hover:bg-slate-50 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
+                                    >
+                                        {isLoading ? (
+                                            <span className="animate-pulse">Generating...</span>
+                                        ) : (
+                                            <>
+                                                <Download size={16} /> SCCA 430 PDF
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
                             </div>
                         </div>
-
-                        <div className="flex flex-col gap-2">
-                            <button
-                                onClick={handleDownloadPDF}
-                                disabled={isLoading}
-                                className="border border-slate-200 bg-white text-slate-700 px-4 py-2 rounded-lg font-semibold hover:bg-slate-50 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
-                            >
-                                {isLoading ? (
-                                    <span className="animate-pulse">Generating...</span>
-                                ) : (
-                                    <>
-                                        <Download size={16} /> SCCA 430 PDF
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Placeholder for empty state if needed */}
+                    ))
+                )}
             </div>
         </div>
     );

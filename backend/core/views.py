@@ -167,3 +167,25 @@ class SubmitIntakeView(APIView):
             import traceback
             print(f"CRITICAL SUBMIT ERROR: {traceback.format_exc()}")
             return Response({"error": f"Failed to save case: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class MatterListView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if not request.user.firm:
+            return Response([], status=status.HTTP_200_OK)
+            
+        matters = Matter.objects.filter(client__firm=request.user.firm).select_related('client')
+        
+        data = []
+        for m in matters:
+            data.append({
+                "id": str(m.id),
+                "title": m.title,
+                "status": m.status,
+                "client_name": str(m.client),
+                "case_number": m.court_case_number or "N/A",
+                "practice_area": m.practice_area
+            })
+            
+        return Response(data, status=status.HTTP_200_OK)

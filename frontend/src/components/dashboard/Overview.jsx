@@ -1,9 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, FileText, DollarSign, Activity } from 'lucide-react';
 
 const Overview = () => {
+    const [activeMattersCount, setActiveMattersCount] = useState(0);
+    const [token] = useState(localStorage.getItem('access_token'));
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            try {
+                // Fetch active matters
+                const response = await fetch(`${API_URL}/api/v1/matters/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setActiveMattersCount(data.length);
+                }
+            } catch (error) {
+                console.error("Failed to fetch stats", error);
+            }
+        };
+        fetchStats();
+    }, [token]);
+
     const stats = [
-        { label: 'Active Matters', value: '1', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Active Matters', value: String(activeMattersCount), icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Pending Intakes', value: '0', icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
         { label: 'Billable Hours (MTD)', value: '0.0', icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50' },
         { label: 'Trust Balance', value: '$0.00', icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },

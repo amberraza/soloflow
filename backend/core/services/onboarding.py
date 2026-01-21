@@ -39,7 +39,9 @@ def process_wizard_data(user, wizard_data):
             user.save()
 
         # 2. Extract Data
-        # Assuming wizard_data structure matches our Wizard steps
+        import json
+        print(f"DEBUG WIZARD DATA: {json.dumps(wizard_data)}", flush=True)
+
         case_basics = wizard_data.get('caseBasics', {})
         income_data = wizard_data.get('income', {})
         expenses_data = wizard_data.get('expenses', {})
@@ -58,12 +60,16 @@ def process_wizard_data(user, wizard_data):
         )
 
         # 4. Create Matter
+        # Fix: ensure title is never empty string
+        case_num = case_basics.get('caseNumber')
+        case_title = case_num if case_num and case_num.strip() else f"Case {case_basics.get('plaintiff', 'Unknown')}"
+
         matter = Matter.objects.create(
             client=client,
-            title=f"{case_basics.get('caseNumber', 'New Case')}",
+            title=case_title,
             status='ACTIVE',
             practice_area='Family Law',
-            court_case_number=case_basics.get('caseNumber'),
+            court_case_number=case_num,
             jurisdiction=case_basics.get('county')
         )
 

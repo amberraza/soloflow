@@ -203,3 +203,34 @@ class MatterDetailView(APIView):
             return Response({"status": "deleted"}, status=status.HTTP_204_NO_CONTENT)
         except Matter.DoesNotExist:
             return Response({"error": "Matter not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def patch(self, request, pk):
+        if not request.user.firm:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+            
+        try:
+            matter = Matter.objects.get(id=pk, client__firm=request.user.firm)
+            data = request.data
+            
+            # Allow updating specific fields
+            if 'title' in data:
+                matter.title = data['title']
+            if 'court_case_number' in data:
+                matter.court_case_number = data['court_case_number']
+            if 'status' in data:
+                matter.status = data['status']
+            if 'practice_area' in data:
+                matter.practice_area = data['practice_area']
+                
+            matter.save()
+            
+            return Response({
+                "id": str(matter.id),
+                "title": matter.title,
+                "case_number": matter.court_case_number,
+                "status": matter.status,
+                "practice_area": matter.practice_area
+            }, status=status.HTTP_200_OK)
+            
+        except Matter.DoesNotExist:
+            return Response({"error": "Matter not found"}, status=status.HTTP_404_NOT_FOUND)

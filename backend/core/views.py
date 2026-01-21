@@ -141,3 +141,29 @@ class RegisterView(APIView):
             error_details = traceback.format_exc()
             print(f"CRITICAL REGISTRATION ERROR: {error_details}")
             return Response({"error": f"Internal Server Error: {str(e)}", "details": error_details}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SubmitIntakeView(APIView):
+    """
+    Allows an authenticated user to save wizard data directly to their account.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        wizard_data = request.data.get('wizard_data')
+        
+        if not wizard_data:
+            return Response({"error": "No wizard data provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Re-use the same service logic as registration
+            process_wizard_data(request.user, wizard_data)
+            
+            return Response({
+                "status": "success",
+                "message": "Case data saved successfully"
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            import traceback
+            print(f"CRITICAL SUBMIT ERROR: {traceback.format_exc()}")
+            return Response({"error": f"Failed to save case: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

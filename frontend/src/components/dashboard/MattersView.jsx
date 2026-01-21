@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, FileText, Search, Plus } from 'lucide-react';
+import { Download, FileText, Search, Plus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const MattersView = () => {
@@ -76,6 +76,32 @@ const MattersView = () => {
         }
     };
 
+    const handleDelete = async (matterId) => {
+        if (!window.confirm("Are you sure you want to delete this matter? This cannot be undone.")) {
+            return;
+        }
+
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        try {
+            const response = await fetch(`${API_URL}/api/v1/matters/${matterId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                // Remove locally
+                setMatters(prev => prev.filter(m => m.id !== matterId));
+            } else {
+                alert("Failed to delete matter");
+            }
+        } catch (error) {
+            console.error("Delete error", error);
+            alert("Network error");
+        }
+    };
+
     return (
         <div>
             <div className="flex items-center justify-between mb-8">
@@ -124,11 +150,11 @@ const MattersView = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-2 items-end">
                                     <button
                                         onClick={() => handleDownloadPDF(matter.id)}
                                         disabled={isLoading}
-                                        className="border border-slate-200 bg-white text-slate-700 px-4 py-2 rounded-lg font-semibold hover:bg-slate-50 transition-all flex items-center gap-2 text-sm disabled:opacity-50"
+                                        className="border border-slate-200 bg-white text-slate-700 px-4 py-2 rounded-lg font-semibold hover:bg-slate-50 transition-all flex items-center gap-2 text-sm disabled:opacity-50 mb-2"
                                     >
                                         {isLoading ? (
                                             <span className="animate-pulse">Generating...</span>
@@ -137,6 +163,13 @@ const MattersView = () => {
                                                 <Download size={16} /> SCCA 430 PDF
                                             </>
                                         )}
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(matter.id)}
+                                        className="text-red-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                                        title="Delete Matter"
+                                    >
+                                        <Trash2 size={18} />
                                     </button>
                                 </div>
                             </div>

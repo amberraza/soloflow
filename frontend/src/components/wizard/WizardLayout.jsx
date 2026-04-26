@@ -32,26 +32,49 @@ const WizardLayout = ({ children, title, currentStep, isWidget }) => {
             )}
 
             <div className={`max-w-6xl mx-auto ${isWidget ? 'p-2' : 'p-4 md:p-8'}`}>
-                {/* Global Progress Bar */}
-                <div className="mb-8 max-w-2xl mx-auto">
-                    <div className="relative pt-1">
-                        <div className="flex mb-2 items-center justify-between">
-                            <div>
-                                <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
-                                    Step {currentStep} of {STEPS.length}
-                                </span>
-                            </div>
-                            <div className="text-right">
-                                <span className="text-xs font-semibold inline-block text-blue-600">
-                                    {Math.round((currentStep / STEPS.length) * 100)}%
-                                </span>
-                            </div>
-                        </div>
-                        <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-slate-200">
-                            <div style={{ width: `${(currentStep / STEPS.length) * 100}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-600 transition-all duration-500"></div>
-                        </div>
-                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight text-center mt-4">{title}</h1>
+                {/* Step Progress */}
+                <div className="mb-10 max-w-2xl mx-auto">
+                    {/* Step Indicator Circles */}
+                    <div className="flex items-center justify-between mb-6 px-2">
+                        {STEPS.map((step, idx) => {
+                            const isActive = step.id === currentStep;
+                            const isCompleted = step.id < currentStep;
+
+                            return (
+                                <div key={step.id} className="flex items-center flex-1">
+                                    <div className="flex flex-col items-center">
+                                        <div
+                                            className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                                                isCompleted
+                                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                                                    : isActive
+                                                    ? 'bg-blue-600 text-white ring-4 ring-blue-100 shadow-md shadow-blue-200'
+                                                    : 'bg-slate-200 text-slate-500'
+                                            }`}
+                                        >
+                                            {isCompleted ? <Check size={16} strokeWidth={3} /> : step.id}
+                                        </div>
+                                        <span
+                                            className={`text-xs font-medium mt-1.5 whitespace-nowrap transition-colors ${
+                                                isActive ? 'text-blue-600' : isCompleted ? 'text-slate-700' : 'text-slate-400'
+                                            }`}
+                                        >
+                                            {step.label}
+                                        </span>
+                                    </div>
+
+                                    {/* Connector Line */}
+                                    {idx < STEPS.length - 1 && (
+                                        <div className={`flex-1 h-0.5 mx-3 mt-[-1.5rem] transition-colors duration-300 ${
+                                            step.id < currentStep ? 'bg-blue-500' : 'bg-slate-200'
+                                        }`} />
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
+
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight text-center">{title}</h1>
                 </div>
 
                 <div className={`grid grid-cols-1 ${isWidget ? '' : 'md:grid-cols-3'} gap-8 items-start`}>

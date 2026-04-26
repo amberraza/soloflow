@@ -156,10 +156,17 @@ const MattersView = () => {
             {/* Matters List */}
             <div className="space-y-4">
                 {matters.length === 0 ? (
-                    <div className="text-center py-10 text-slate-400">
-                        No active matters found. Start a new intake!
+                <div className="text-center py-16 bg-white rounded-xl border border-slate-200 shadow-sm">
+                    <div className="bg-slate-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5">
+                        <FileText size={36} className="text-slate-400" />
                     </div>
-                ) : (
+                    <h3 className="text-lg font-bold text-slate-700 mb-1">No matters yet</h3>
+                    <p className="text-slate-400 text-sm mb-6">Create your first intake to start managing cases.</p>
+                    <Link to="/intake/new" className="inline-flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-all shadow-sm shadow-blue-200">
+                        <Plus size={16} /> Start New Intake
+                    </Link>
+                </div>
+            ) : (
                     matters.map((matter) => (
                         <div key={matter.id} className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow p-6">
                             <div className="flex items-start justify-between">

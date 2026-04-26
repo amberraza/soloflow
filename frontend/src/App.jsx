@@ -7,6 +7,7 @@ import WidgetPage from './components/intake/WidgetPage';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
 import SettingsView from './components/dashboard/SettingsView';
+import TaxCalculatorView from './components/dashboard/TaxCalculatorView';
 import './App.css';
 
 function Home() {
@@ -41,6 +42,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardLayout><Overview /></DashboardLayout>} />
         <Route path="/dashboard/matters" element={<DashboardLayout><MattersView /></DashboardLayout>} />
         <Route path="/dashboard/settings" element={<DashboardLayout><SettingsView /></DashboardLayout>} />
+        <Route path="/dashboard/tax-calculator" element={<DashboardLayout><TaxCalculatorView /></DashboardLayout>} />
       </Routes>
     </Router>
   );

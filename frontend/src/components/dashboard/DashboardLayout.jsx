@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, FileText, Settings, PlusCircle, LogOut, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, PlusCircle, LogOut, Menu, ChevronLeft, ChevronRight, Calculator } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const DashboardLayout = ({ children }) => {
@@ -10,6 +10,7 @@ const DashboardLayout = ({ children }) => {
         { icon: LayoutDashboard, label: 'Overview', path: '/dashboard' },
         { icon: PlusCircle, label: 'New Intake', path: '/intake/new' },
         { icon: FileText, label: 'Matters', path: '/dashboard/matters' },
+        { icon: Calculator, label: 'Tax Calculator', path: '/dashboard/tax-calculator' },
         { icon: Settings, label: 'Settings', path: '/dashboard/settings' },
     ];
 

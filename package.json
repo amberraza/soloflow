@@ -1,0 +1,26 @@
+{
+  "name": "soloflow",
+  "version": "1.0.0",
+  "description": "**Legal Vertical SaaS for Solo Attorneys**",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amberraza/soloflow.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/amberraza/soloflow/issues"
+  },
+  "homepage": "https://github.com/amberraza/soloflow#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
+}

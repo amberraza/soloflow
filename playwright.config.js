@@ -1,6 +1,8 @@
-import { defineConfig } from '@playwright/test';
+const { defineConfig } = require('@playwright/test');
+const dotenv = require('dotenv');
+dotenv.config({ path: './e2e/.env' });
 
-export default defineConfig({
+module.exports = defineConfig({
   testDir: './e2e',
   timeout: 30000,
   retries: 1,
@@ -9,6 +11,7 @@ export default defineConfig({
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
     screenshot: 'only-on-failure',
+    baseURL: process.env.BASE_URL || 'http://localhost:5173',
   },
   projects: [
     {

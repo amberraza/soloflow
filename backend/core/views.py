@@ -90,6 +90,14 @@ class FirmTrustBalanceView(APIView):
         from core.models import Matter
         from django.db.models import Sum, F
 
+        # Guard: user might not have a firm assigned yet
+        if not request.user.firm:
+            return Response({
+                "trust_balance": "0",
+                "pending_intakes": 0,
+                "currency": "USD"
+            })
+
         matters = Matter.objects.filter(
             client__firm=request.user.firm
         )
@@ -99,8 +107,8 @@ class FirmTrustBalanceView(APIView):
         )
         balance = balance_aggregate.get('total_trust') or 0
 
-        # Also count pending intakes
-        pending_count = matters.filter(status='PENDING').count()
+        # Count matters in intake/lead/pending statuses
+        pending_count = matters.filter(status__in=['LEAD', 'PENDING']).count()
 
         return Response({
             "trust_balance": str(balance),

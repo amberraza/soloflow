@@ -46,6 +46,7 @@ class Matter(models.Model):
     # Critical for docket polling
     court_case_number = models.CharField(max_length=100, blank=True, null=True)
     jurisdiction = models.CharField(max_length=100, blank=True)
+    defendant_name = models.CharField(max_length=255, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True, null=True) # Sortable timestamp
 
     def __str__(self):

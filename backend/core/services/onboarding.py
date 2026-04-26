@@ -107,7 +107,8 @@ def process_wizard_data(user, wizard_data):
             status='ACTIVE',
             practice_area='Family Law',
             court_case_number=case_number,
-            jurisdiction=county
+            jurisdiction=county,
+            defendant_name=defendant_name,
         )
 
         # 5. Create Financial Affidavit — fully populated

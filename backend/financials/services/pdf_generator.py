@@ -38,12 +38,14 @@ def generate_financial_declaration_pdf(affidavit: FinancialAffidavit):
     elements.append(Spacer(1, 10))
 
     # Caption Table
-    client = affidavit.matter.client
+    matter = affidavit.matter
+    client = matter.client
+    defendant_name = matter.defendant_name or 'Defendant'
     data = [
-        [f"{client.first_name} {client.last_name}", f"Case No. {affidavit.matter.court_case_number or 'Pending'}"],
+        [f"{client.first_name} {client.last_name}", f"Case No. {matter.court_case_number or 'Pending'}"],
         ["Plaintiff,", ""],
         ["vs.", "FINANCIAL DECLARATION"],
-        ["Defendant Name (TBD)", "(SCCA 430)"],
+        [defendant_name, "(SCCA 430)"],
         ["Defendant.", ""]
     ]
     t = Table(data, colWidths=[300, 200])

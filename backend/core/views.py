@@ -83,6 +83,31 @@ class TrustBalanceView(APIView):
             "currency": "USD"
         })
 
+class FirmTrustBalanceView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        from core.models import Matter
+        from django.db.models import Sum, F
+
+        matters = Matter.objects.filter(
+            client__firm=request.user.firm
+        )
+
+        balance_aggregate = matters.aggregate(
+            total_trust=Sum(F('timeentries__hours') * F('timeentries__rate'))
+        )
+        balance = balance_aggregate.get('total_trust') or 0
+
+        # Also count pending intakes
+        pending_count = matters.filter(status='PENDING').count()
+
+        return Response({
+            "trust_balance": str(balance),
+            "pending_intakes": pending_count,
+            "currency": "USD"
+        })
+
 class StripeWebhookView(APIView):
     authentication_classes = []
     permission_classes = [permissions.AllowAny]

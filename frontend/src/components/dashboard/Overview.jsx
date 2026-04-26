@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 
 const Overview = () => {
     const [activeMattersCount, setActiveMattersCount] = useState(0);
+    const [pendingIntakes, setPendingIntakes] = useState(0);
+    const [trustBalance, setTrustBalance] = useState(0);
     const [recentMatters, setRecentMatters] = useState([]);
     const [token] = useState(localStorage.getItem('access_token'));
 
@@ -11,13 +13,24 @@ const Overview = () => {
         const fetchStats = async () => {
             const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
             try {
-                const response = await fetch(`${API_URL}/api/v1/matters/`, {
+                // Fetch matters
+                const mattersRes = await fetch(`${API_URL}/api/v1/matters/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (response.ok) {
-                    const data = await response.json();
+                if (mattersRes.ok) {
+                    const data = await mattersRes.json();
                     setActiveMattersCount(data.length);
                     setRecentMatters(data.slice(0, 3));
+                }
+
+                // Fetch trust balance and pending intakes
+                const trustRes = await fetch(`${API_URL}/api/v1/billing/trust-balance/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (trustRes.ok) {
+                    const trustData = await trustRes.json();
+                    setTrustBalance(parseFloat(trustData.trust_balance) || 0);
+                    setPendingIntakes(trustData.pending_intakes || 0);
                 }
             } catch (error) {
                 console.error("Failed to fetch stats", error);
@@ -28,9 +41,9 @@ const Overview = () => {
 
     const stats = [
         { label: 'Active Matters', value: String(activeMattersCount), icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { label: 'Pending Intakes', value: '0', icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { label: 'Pending Intakes', value: String(pendingIntakes), icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
         { label: 'Billable Hours (MTD)', value: '0.0', icon: Activity, color: 'text-orange-600', bg: 'bg-orange-50' },
-        { label: 'Trust Balance', value: '$0.00', icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },
+        { label: 'Trust Balance', value: `$${trustBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: DollarSign, color: trustBalance > 0 ? 'text-green-600' : 'text-slate-400', bg: trustBalance > 0 ? 'bg-green-50' : 'bg-slate-50' },
     ];
 
     return (

@@ -8,30 +8,14 @@ import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
 import SettingsView from './components/dashboard/SettingsView';
 import TaxCalculatorView from './components/dashboard/TaxCalculatorView';
+import LandingPage from './components/marketing/LandingPage';
 import './App.css';
-
-function Home() {
-  return (
-    <div className="p-8 text-center">
-      <h1 className="text-4xl font-bold mb-4">SoloFlow</h1>
-      <p className="mb-8">Legal Vertical SaaS for Solo Attorneys</p>
-      <div className="space-x-4">
-        <Link to="/tools/financial-wizard" className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold">
-          Try Financial Wizard (Free)
-        </Link>
-        <Link to="/login" className="bg-white border border-slate-300 text-slate-700 px-6 py-3 rounded-lg font-bold">
-          Log In
-        </Link>
-      </div>
-    </div>
-  );
-}
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/tools/financial-wizard" element={<FinancialWizard />} />

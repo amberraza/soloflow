@@ -6,6 +6,7 @@ import MattersView from './components/dashboard/MattersView';
 import WidgetPage from './components/intake/WidgetPage';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
+import SettingsView from './components/dashboard/SettingsView';
 import './App.css';
 
 function Home() {
@@ -39,7 +40,7 @@ function App() {
         {/* Dashboard Routes */}
         <Route path="/dashboard" element={<DashboardLayout><Overview /></DashboardLayout>} />
         <Route path="/dashboard/matters" element={<DashboardLayout><MattersView /></DashboardLayout>} />
-        <Route path="/dashboard/settings" element={<DashboardLayout><div className="text-slate-500">Settings Placeholder</div></DashboardLayout>} />
+        <Route path="/dashboard/settings" element={<DashboardLayout><SettingsView /></DashboardLayout>} />
       </Routes>
     </Router>
   );

@@ -13,13 +13,22 @@ def get_core_models():
     Matter = apps.get_model('core', 'Matter')
     return Firm, Client, Matter
 
+def safe_decimal(value, default=Decimal('0.00')):
+    """Safely convert a value to Decimal, returning default on None/empty."""
+    if value is None or (isinstance(value, str) and value.strip() == ''):
+        return default
+    try:
+        return Decimal(str(value))
+    except Exception:
+        return default
+
 def process_wizard_data(user, wizard_data):
     """
     Takes a newly registered user and a dictionary of wizard data.
     Ensures the user has a Firm.
     Creates a Client (Plaintiff).
     Creates a Matter.
-    Creates a FinancialAffidavit populated with the data.
+    Creates a FinancialAffidavit populated with ALL data from the wizard.
     """
     with transaction.atomic():
         Firm, Client, Matter = get_core_models()
@@ -38,17 +47,49 @@ def process_wizard_data(user, wizard_data):
             user.firm = firm
             user.save()
 
-        # 2. Extract Data
-        import json
-        print(f"DEBUG WIZARD DATA: {json.dumps(wizard_data)}", flush=True)
-
+        # 2. Extract Data from wizard JSON
         case_basics = wizard_data.get('caseBasics', {})
+        case_details = wizard_data.get('caseDetails', {})
         income_data = wizard_data.get('income', {})
+        deductions_data = wizard_data.get('deductions', {})
         expenses_data = wizard_data.get('expenses', {})
-        
+
+        # --- Case Basics ---
         plaintiff_name = case_basics.get('plaintiff', 'Unknown Client').split(' ')
         first_name = plaintiff_name[0]
-        last_name = plaintiff_name[1] if len(plaintiff_name) > 1 else 'Unknown'
+        last_name = ' '.join(plaintiff_name[1:]) if len(plaintiff_name) > 1 else 'Unknown'
+
+        defendant_name = case_basics.get('defendant', '')
+        county = case_basics.get('county', '')
+        case_number = case_basics.get('caseNumber', '')
+        case_title = case_number if case_number and case_number.strip() else f"Case {case_basics.get('plaintiff', 'Unknown')}"
+
+        # --- Case Details (from extended wizard steps) ---
+        children_count = case_details.get('numChildren')
+        if children_count is not None:
+            try:
+                children_count = int(children_count)
+            except (ValueError, TypeError):
+                children_count = 0
+
+        # --- Income Data ---
+        gross_monthly = safe_decimal(income_data.get('grossMonthly', 0))
+        overtime = safe_decimal(income_data.get('overtime', 0))
+        rental_income = safe_decimal(income_data.get('rentalIncome', 0))
+        business_income = safe_decimal(income_data.get('businessIncome', 0))
+
+        # --- Deductions Data ---
+        tax_federal = safe_decimal(deductions_data.get('federalTax', 0))
+        tax_state = safe_decimal(deductions_data.get('stateTax', 0))
+        tax_fica = safe_decimal(deductions_data.get('fica', 0))
+        health_insurance_total = safe_decimal(deductions_data.get('healthInsurance', 0))
+        health_insurance_children = safe_decimal(deductions_data.get('healthInsuranceChildren', 0))
+
+        # --- Expenses Data ---
+        rent_mortgage = safe_decimal(expenses_data.get('housing', 0))
+        utilities = safe_decimal(expenses_data.get('utilities', 0))
+        food_household = safe_decimal(expenses_data.get('food', 0))
+        daycare = safe_decimal(expenses_data.get('daycare', 0))
 
         # 3. Create Client
         client = Client.objects.create(
@@ -60,28 +101,36 @@ def process_wizard_data(user, wizard_data):
         )
 
         # 4. Create Matter
-        # Fix: ensure title is never empty string
-        case_num = case_basics.get('caseNumber')
-        case_title = case_num if case_num and case_num.strip() else f"Case {case_basics.get('plaintiff', 'Unknown')}"
-
         matter = Matter.objects.create(
             client=client,
             title=case_title,
             status='ACTIVE',
             practice_area='Family Law',
-            court_case_number=case_num,
-            jurisdiction=case_basics.get('county')
+            court_case_number=case_number,
+            jurisdiction=county
         )
 
-        # 5. Create Financial Affidavit
+        # 5. Create Financial Affidavit — fully populated
         FinancialAffidavit.objects.create(
             matter=matter,
-            is_plaintiff=True, 
+            is_plaintiff=True,
             status='DRAFT',
-            gross_wages=Decimal(str(income_data.get('grossMonthly', 0))),
-            # Map other fields from wizard_data...
-            # For brevity, implementing Gross Wages mapping as proof of concept.
-            # Real implementation would map every single field from the JSON.
+            # Income
+            gross_wages=gross_monthly,
+            overtime_bonus=overtime,
+            rental_income=rental_income,
+            business_income=business_income,
+            # Deductions
+            tax_federal=tax_federal,
+            tax_state=tax_state,
+            tax_fica=tax_fica,
+            health_insurance_total=health_insurance_total,
+            health_insurance_children=health_insurance_children,
+            # Expenses
+            rent_mortgage=rent_mortgage,
+            utilities=utilities,
+            food_household=food_household,
+            daycare_work_related=daycare,
         )
-        
+
     return matter

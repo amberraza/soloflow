@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import useFinancialStore from '../../store/useFinancialStore';
 import Step1CaseBasics from '../wizard/Step1CaseBasics';
 import Step2Income from '../wizard/Step2Income';
@@ -12,6 +13,8 @@ import WizardLayout from '../wizard/WizardLayout';
 const FinancialWizard = ({ isWidget = false }) => {
   const [step, setStep] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitState, setSubmitState] = useState('idle'); // idle | loading | success | error
+  const [submitError, setSubmitError] = useState('');
   const navigate = useNavigate();
   const wizardData = useFinancialStore((state) => state.wizardData);
 
@@ -22,7 +25,8 @@ const FinancialWizard = ({ isWidget = false }) => {
     const token = localStorage.getItem('access_token');
 
     if (token) {
-      // Logged in: Submit directly
+      setSubmitState('loading');
+      setSubmitError('');
       try {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
         const freshWizardData = useFinancialStore.getState().wizardData;
@@ -37,16 +41,17 @@ const FinancialWizard = ({ isWidget = false }) => {
         });
 
         if (response.ok) {
-          // Success - Redirect to Dashboard
+          setSubmitState('success');
           useFinancialStore.getState().reset();
-          navigate('/dashboard');
+          setTimeout(() => navigate('/dashboard'), 1200);
         } else {
           const err = await response.json();
-          alert(`Failed to save case: ${err.error || 'Unknown error'}`);
+          setSubmitState('error');
+          setSubmitError(err.error || 'Failed to save case. Please try again.');
         }
       } catch (error) {
-        console.error("Submit error:", error);
-        alert("Network error while saving case.");
+        setSubmitState('error');
+        setSubmitError('Network error. Please check your connection and try again.');
       }
     } else {
       // Guest: Open Modal
@@ -72,7 +77,26 @@ const FinancialWizard = ({ isWidget = false }) => {
         {step === 2 && <Step2Income onNext={nextStep} onPrev={prevStep} />}
         {step === 3 && <Step3Deductions onNext={nextStep} onPrev={prevStep} />}
         {step === 4 && <Step4Expenses onNext={nextStep} onPrev={prevStep} />}
-        {step === 5 && <Step5Custody onNext={null} onPrev={prevStep} onFinish={handleFinish} />}
+        {step === 5 && <Step5Custody onNext={null} onPrev={prevStep} onFinish={handleFinish} submitState={submitState} submitError={submitError} />}
+
+      {/* Global submit overlay for steps before the final one */}
+      {submitState === 'loading' && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 p-8 flex items-center gap-4">
+            <Loader2 className="animate-spin text-blue-600" size={24} />
+            <span className="text-lg font-medium text-slate-700">Saving your case...</span>
+          </div>
+        </div>
+      )}
+
+      {submitState === 'success' && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-2xl border border-green-200 p-8 flex items-center gap-4">
+            <CheckCircle2 className="text-green-500" size={28} />
+            <span className="text-lg font-medium text-green-700">Case saved! Redirecting...</span>
+          </div>
+        </div>
+      )}
       </WizardLayout>
 
       <RegistrationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

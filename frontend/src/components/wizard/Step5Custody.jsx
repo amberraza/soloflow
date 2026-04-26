@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import useFinancialStore from '../../store/useFinancialStore';
-import WizardLayout from './WizardLayout';
-import { Smile, Users, Heart, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Smile, Heart, ArrowLeft, ArrowRight } from 'lucide-react';
 
-const Step5Custody = ({ onNext, onPrev, onFinish }) => {
+const Step5Custody = ({ onNext, onPrev, onFinish, submitState, submitError }) => {
     const { wizardData, updateSection } = useFinancialStore();
     const { register, handleSubmit, control, setValue } = useForm({
         defaultValues: wizardData.childSupport
@@ -103,20 +102,48 @@ const Step5Custody = ({ onNext, onPrev, onFinish }) => {
                 </div>
             </div>
 
+            {/* Error State */}
+            {submitState === 'error' && submitError && (
+                <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+                    <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={18} />
+                    <p className="text-sm text-red-700">{submitError}</p>
+                </div>
+            )}
+
             <div className="flex justify-between pt-8 border-t border-gray-100 mt-8 gap-4">
                 <button
                     type="button"
                     onClick={onPrev}
-                    className="text-gray-500 font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center gap-2"
+                    disabled={submitState === 'loading'}
+                    className="text-gray-500 font-semibold px-6 py-3 rounded-lg hover:bg-gray-100 hover:text-gray-900 transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                     <ArrowLeft size={18} /> Back
                 </button>
-                <button
-                    type="submit"
-                    className="flex-1 bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-green-500/30 hover:bg-green-700 hover:shadow-green-500/40 hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
-                >
-                    Generate Financial Declaration <ArrowRight size={20} />
-                </button>
+
+                {submitState === 'loading' ? (
+                    <button
+                        type="button"
+                        disabled
+                        className="flex-1 bg-blue-400 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 cursor-not-allowed"
+                    >
+                        <Loader2 size={20} className="animate-spin" /> Saving...
+                    </button>
+                ) : submitState === 'success' ? (
+                    <button
+                        type="button"
+                        disabled
+                        className="flex-1 bg-green-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 cursor-not-allowed"
+                    >
+                        <CheckCircle2 size={20} /> Saved!
+                    </button>
+                ) : (
+                    <button
+                        type="submit"
+                        className="flex-1 bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-green-500/30 hover:bg-green-700 hover:shadow-green-500/40 hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
+                    >
+                        Generate Financial Declaration <ArrowRight size={20} />
+                    </button>
+                )}
             </div>
         </form>
     );

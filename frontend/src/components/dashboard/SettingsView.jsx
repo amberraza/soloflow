@@ -17,7 +17,7 @@ const SettingsView = () => {
 
     // Load user/firm profile on mount
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
         if (!token) {
             setError('Not authenticated');
             setLoading(false);
@@ -49,7 +49,7 @@ const SettingsView = () => {
         e.preventDefault();
         setError(null);
 
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
         if (!token) return;
 
         fetch(`${API_URL}/api/v1/auth/user/`, {

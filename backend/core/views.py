@@ -204,6 +204,42 @@ class RegisterView(APIView):
             print(f"CRITICAL REGISTRATION ERROR: {error_details}")
             return Response({"error": f"Internal Server Error: {str(e)}", "details": error_details}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class UserProfileView(APIView):
+    """Get or update the current user's profile and firm info."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        firm = getattr(user, 'firm', None)
+        return Response({
+            "user_id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "firm_id": firm.id if firm else None,
+            "firm_name": firm.name if firm else None,
+            "firm_domain": firm.domain if firm else None,
+        })
+
+    def patch(self, request):
+        user = request.user
+        firm = getattr(user, 'firm', None)
+        if not firm:
+            return Response({"error": "No firm associated with this user"}, status=400)
+
+        data = request.data
+        if 'firm_name' in data:
+            firm.name = data['firm_name']
+        if 'firm_domain' in data:
+            firm.domain = data['firm_domain']
+        firm.save()
+
+        return Response({
+            "status": "updated",
+            "firm_id": firm.id,
+            "firm_name": firm.name,
+            "firm_domain": firm.domain,
+        })
+
 class SubmitIntakeView(APIView):
     """
     Allows an authenticated user to save wizard data directly to their account.

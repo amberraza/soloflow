@@ -1,39 +1,81 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Building, User, Key, FileText, Code } from 'lucide-react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://getsoloflow.com';
+
 const SettingsView = () => {
     const [firmName, setFirmName] = useState('');
     const [firmId, setFirmId] = useState('');
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
-    const [address, setAddress] = useState('');
+    const [firmDomain, setFirmDomain] = useState('');
+    const [userEmail, setUserEmail] = useState('');
+    const [userName, setUserName] = useState('');
     const [saved, setSaved] = useState(false);
     const [copied, setCopied] = useState(false);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Fetch current user/firm data on mount
+    // Load user/firm profile on mount
     useEffect(() => {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError('Not authenticated');
+            setLoading(false);
+            return;
+        }
+
+        fetch(`${API_URL}/api/v1/auth/user/`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load profile');
+                return res.json();
+            })
+            .then(data => {
+                setFirmName(data.firm_name || '');
+                setFirmId(data.firm_id || '');
+                setFirmDomain(data.firm_domain || '');
+                setUserEmail(data.email || '');
+                setUserName(data.username || '');
+                setLoading(false);
+            })
+            .catch(err => {
+                setError(err.message);
+                setLoading(false);
+            });
+    }, []);
+
+    const handleSave = (e) => {
+        e.preventDefault();
+        setError(null);
+
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        // Try to get the current user profile to find the firm ID
-        // We can decode the JWT to get user info
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            // The token might not have firm_id; we'll just populate the widget URL from the current host
-        } catch (e) {}
+        fetch(`${API_URL}/api/v1/auth/user/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                firm_name: firmName,
+                firm_domain: firmDomain,
+            })
+        })
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to save');
+                return res.json();
+            })
+            .then(() => {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2500);
+            })
+            .catch(err => {
+                setError(err.message);
+            });
+    };
 
-        fetch(`${API_URL}/api/v1/health/`)
-            .then(r => r.json())
-            .then(() => setLoading(false))
-            .catch(() => setLoading(false));
-    }, []);
-
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://getsoloflow.com';
-    // Firm ID from JWT or environment — fall back to a helpful placeholder
     const embedCode = `<iframe src="${BASE_URL}/intake/embed/${firmId || '{YOUR_FIRM_ID}'}" width="100%" height="700" frameborder="0" style="border: none; border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,0.1);"></iframe>`;
 
     const handleCopy = () => {
@@ -42,11 +84,17 @@ const SettingsView = () => {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleSave = (e) => {
-        e.preventDefault();
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
-    };
+    if (loading) {
+        return (
+            <div className="max-w-3xl mx-auto py-8 px-6">
+                <div className="animate-pulse space-y-4">
+                    <div className="h-8 bg-slate-200 rounded w-48" />
+                    <div className="h-4 bg-slate-200 rounded w-72" />
+                    <div className="h-48 bg-slate-200 rounded-xl" />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-3xl mx-auto py-8 px-6">
@@ -54,6 +102,12 @@ const SettingsView = () => {
                 <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
                 <p className="text-slate-500 mt-1">Manage your firm profile and preferences.</p>
             </div>
+
+            {error && (
+                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                    {error}
+                </div>
+            )}
 
             <div className="space-y-8">
                 {/* Firm Profile */}
@@ -77,35 +131,50 @@ const SettingsView = () => {
                             />
                         </div>
                         <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Firm Domain</label>
+                            <input
+                                type="text"
+                                value={firmDomain}
+                                onChange={(e) => setFirmDomain(e.target.value)}
+                                placeholder="yourfirm.com"
+                                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
+                            />
+                            <p className="text-xs text-slate-400 mt-1">Your website domain for widget embedding</p>
+                        </div>
+                        <div>
                             <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
                             <input
                                 type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={userEmail}
+                                readOnly
                                 placeholder="you@firm.com"
-                                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
+                                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed"
                             />
+                            <p className="text-xs text-slate-400 mt-1">Managed via account settings</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
-                            <input
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                placeholder="(555) 123-4567"
-                                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Address</label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
                             <input
                                 type="text"
-                                value={address}
-                                onChange={(e) => setAddress(e.target.value)}
-                                placeholder="123 Main St, Suite 100"
-                                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
+                                value={userName}
+                                readOnly
+                                placeholder="username"
+                                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed"
                             />
                         </div>
+
+                        {firmId && (
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Firm ID</label>
+                                <input
+                                    type="text"
+                                    value={firmId}
+                                    readOnly
+                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-500 cursor-text font-mono"
+                                />
+                                <p className="text-xs text-slate-400 mt-1">Use this in your embed code</p>
+                            </div>
+                        )}
 
                         <button
                             type="submit"

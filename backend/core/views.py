@@ -36,9 +36,26 @@ class PublicIntakeView(APIView):
                 "message": result['message'],
                 "matter_id": result['matter'].id
             }, status=status.HTTP_201_CREATED)
+
+class PublicFirmView(APIView):
+    """Public endpoint returning firm branding info for the embeddable widget."""
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, firm_id):
+        try:
+            firm = FirmModel.objects.get(id=firm_id)
+            return Response({
+                "id": firm.id,
+                "name": firm.name,
+                "domain": firm.domain,
+            })
+        except FirmModel.DoesNotExist:
+            return Response({"error": "Firm not found"}, status=404)
 from rest_framework import status, permissions
 from .services import generate_retainer_pdf
 from .models import Matter
+from .models import Firm as FirmModel
 from django.shortcuts import get_object_or_404
 
 class GenerateRetainerView(APIView):

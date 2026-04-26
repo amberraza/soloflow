@@ -157,6 +157,7 @@ raw_cors_origins = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5173
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in raw_cors_origins.split(',') if origin.strip()]
 
 # Debugging: Allow overriding strict CORS with a wildcard via Env Var
+# Required for widget embedding on third-party sites
 CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
 
 # Django 4.0+ requires CSRF_TRUSTED_ORIGINS for cross-origin POSTs

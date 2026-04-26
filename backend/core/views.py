@@ -179,6 +179,19 @@ class RegisterView(APIView):
 
             user = User.objects.create_user(username=username, password=password)
             
+            # Auto-create a Firm for new users so they have a profile immediately
+            from .models import Firm as FirmModel
+            if not user.firm:
+                domain = f"{username}.soloflow.app"
+                firm = FirmModel.objects.create(
+                    name=f"{username}'s Firm",
+                    domain=domain,
+                    iolta_account_id="",
+                    operating_account_id="",
+                )
+                user.firm = firm
+                user.save()
+            
             if wizard_data:
                 try:
                     process_wizard_data(user, wizard_data)

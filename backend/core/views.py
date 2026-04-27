@@ -65,12 +65,27 @@ class GenerateRetainerView(APIView):
     permission_classes = [permissions.IsAuthenticated] # Lawyers only
 
     def post(self, request, matter_id):
-        # In real app, check request.user.firm == matter.firm
         matter = get_object_or_404(Matter, id=matter_id)
         
         # Security Check (Basic Firm Isolation)
         if request.user.firm != matter.client.firm:
             return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            doc = generate_retainer_pdf(matter, send_for_signature=True)
+            return Response({
+                "status": "success",
+                "document_id": str(doc.id),
+                "is_retainer": doc.is_retainer,
+                "message": "Retainer generated and sent for signature.",
+            }, status=status.HTTP_201_CREATED)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except ImportError as e:
+            return Response({"error": f"PDF generation unavailable: {str(e)}"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception as e:
+            logger.exception("Retainer generation failed")
+            return Response({"error": f"Internal error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 from django.db.models import Sum
 from decimal import Decimal

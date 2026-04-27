@@ -5,6 +5,7 @@ import EditMatterModal from './EditMatterModal';
 
 const MattersView = () => {
     const [isLoading, setIsLoading] = useState(false);
+    const [retainerLoading, setRetainerLoading] = useState({});
     const [matters, setMatters] = useState([]);
     const [editingMatter, setEditingMatter] = useState(null);
     const [token] = useState(localStorage.getItem('access_token'));
@@ -27,6 +28,35 @@ const MattersView = () => {
             }
         } catch (error) {
             console.error("Failed to fetch matters", error);
+        }
+    };
+
+    const handleGenerateRetainer = async (matterId) => {
+        setRetainerLoading(prev => ({ ...prev, [matterId]: true }));
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+        try {
+            const response = await fetch(`${API_URL}/api/v1/matters/${matterId}/generate-retainer/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert('✅ Retainer sent for signature! Check your client\'s email.');
+                // Refresh matters to show updated status
+                fetchMatters();
+            } else {
+                const err = await response.json();
+                alert(`Error: ${err.error || err.detail || "Generation failed"}`);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Network error");
+        } finally {
+            setRetainerLoading(prev => ({ ...prev, [matterId]: false }));
         }
     };
 
@@ -185,6 +215,19 @@ const MattersView = () => {
                                 </div>
 
                                 <div className="flex flex-col gap-2 items-end">
+                                    {matter.status === 'QUALIFIED' && (
+                                        <button
+                                            onClick={() => handleGenerateRetainer(matter.id)}
+                                            disabled={retainerLoading[matter.id]}
+                                            className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-all flex items-center gap-2 text-sm disabled:opacity-50 shadow-sm"
+                                        >
+                                            {retainerLoading[matter.id] ? (
+                                                <span className="animate-pulse">Sending...</span>
+                                            ) : (
+                                                <>📝 Generate Retainer</>
+                                            )}
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => handleDownloadPDF(matter.id)}
                                         disabled={isLoading}

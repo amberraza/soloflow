@@ -20,9 +20,15 @@ HEADERS = {
     'Content-Type': 'application/json',
 }
 
+
 def send_retainer_for_signing(document_obj, client_email, client_name):
     """
     Upload a retainer PDF to Documenso and send it for e-signature.
+
+    Documenso API flow (S3 transport):
+    1. POST /api/v1/documents (JSON) → returns { uploadUrl, documentId }
+    2. PUT {uploadUrl} with raw PDF binary
+    3. POST /api/v1/documents/{id}/send (JSON) → triggers signing emails
 
     Args:
         document_obj: The Document model instance (has .file path)
@@ -33,45 +39,59 @@ def send_retainer_for_signing(document_obj, client_email, client_name):
         dict with signing_url, document_id, or None on failure
     """
     try:
-        # Step 1: Create a document in Documenso
         doc_path = document_obj.file.path
 
-        # Open file and send as multipart
-        with open(doc_path, 'rb') as f:
-            files = {
-                'file': (f'retainer_{document_obj.matter.id}.pdf', f, 'application/pdf'),
-            }
-            data = {
-                'title': f'Retainer Agreement - {document_obj.matter.title}',
-                'recipients': json.dumps([
-                    {
-                        'email': client_email,
-                        'name': client_name,
-                        'role': 'SIGNER',
-                    }
-                ]),
-                'meta': json.dumps({
-                    'matter_id': str(document_obj.matter.id),
-                    'source': 'soloflow',
-                }),
-            }
-            # Use requests directly for multipart upload
-            resp = requests.post(
-                f'{DOCUMENSO_BASE_URL}/documents',
-                headers={'Authorization': f'Bearer {DOCUMENSO_API_KEY}'},
-                files=files,
-                data=data,
-                timeout=30,
-            )
+        # Step 1: Create document via JSON — get upload URL and document ID
+        create_payload = {
+            'title': f'Retainer Agreement - {document_obj.matter.title}',
+            'recipients': [
+                {
+                    'email': client_email,
+                    'name': client_name,
+                    'role': 'SIGNER',
+                }
+            ],
+            'meta': {
+                'matter_id': str(document_obj.matter.id),
+                'source': 'soloflow',
+            },
+        }
 
-        if not resp.ok:
-            logger.error(f'Documenso create document failed: {resp.status_code} {resp.text}')
+        create_resp = requests.post(
+            f'{DOCUMENSO_BASE_URL}/documents',
+            headers=HEADERS,
+            json=create_payload,
+            timeout=30,
+        )
+
+        if not create_resp.ok:
+            logger.error(f'Documenso create document failed: {create_resp.status_code} {create_resp.text}')
             return None
 
-        result = resp.json()
-        document_id = result.get('id')
+        create_result = create_resp.json()
+        upload_url = create_result.get('uploadUrl')
+        document_id = create_result.get('documentId')
 
-        # Step 2: Send the document for signing
+        if not upload_url or not document_id:
+            logger.error(f'Documenso create response missing uploadUrl or documentId: {create_result}')
+            return None
+
+        # Step 2: Upload the PDF to the presigned S3 URL
+        with open(doc_path, 'rb') as f:
+            pdf_bytes = f.read()
+
+        upload_resp = requests.put(
+            upload_url,
+            data=pdf_bytes,
+            headers={'Content-Type': 'application/octet-stream'},
+            timeout=60,
+        )
+
+        if not upload_resp.ok:
+            logger.error(f'Documenso PDF upload failed: {upload_resp.status_code} {upload_resp.text}')
+            return {'document_id': document_id, 'signing_url': None}
+
+        # Step 3: Send the document for signing
         send_resp = requests.post(
             f'{DOCUMENSO_BASE_URL}/documents/{document_id}/send',
             headers=HEADERS,
@@ -89,6 +109,8 @@ def send_retainer_for_signing(document_obj, client_email, client_name):
         # Store the Documenso document ID on the Document model
         document_obj.external_id = str(document_id)
         document_obj.save(update_fields=['external_id'])
+
+        logger.info(f'Documenso: retainer sent for signing. Doc ID: {document_id}, Signing URL: {signing_url}')
 
         return {
             'document_id': document_id,

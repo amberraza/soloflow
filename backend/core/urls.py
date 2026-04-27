@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import PublicIntakeView, PublicFirmView, UserProfileView, GenerateRetainerView, TrustBalanceView, FirmTrustBalanceView, StripeWebhookView, RegisterView, HealthCheckView, SubmitIntakeView, MatterListView, MatterDetailView
+from .views import PublicIntakeView, PublicFirmView, UserProfileView, GenerateRetainerView, TrustBalanceView, FirmTrustBalanceView, StripeWebhookView, DocumensoWebhookView, RegisterView, HealthCheckView, SubmitIntakeView, MatterListView, MatterDetailView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -12,6 +12,7 @@ urlpatterns = [
     path('billing/trust-balance/', FirmTrustBalanceView.as_view(), name='firm-trust-balance'),
     path('billing/trust-balance/<uuid:client_id>/', TrustBalanceView.as_view(), name='trust-balance'),
     path('webhooks/stripe/', StripeWebhookView.as_view(), name='stripe-webhook'),
+    path('webhooks/documenso/', DocumensoWebhookView.as_view(), name='documenso-webhook'),
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

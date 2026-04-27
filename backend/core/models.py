@@ -58,6 +58,8 @@ class Document(models.Model):
     file = models.FileField(upload_to='secure_docs/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     is_retainer = models.BooleanField(default=False)
+    external_id = models.CharField(max_length=255, blank=True, null=True, help_text="External system ID (e.g. Documenso document ID)")
+    signed_at = models.DateTimeField(blank=True, null=True, help_text="When the client signed via Documenso")
 
 class TimeEntry(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -3,6 +3,9 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from .serializers import IntakeSerializer
 from rest_framework.throttling import AnonRateThrottle
+import logging
+
+logger = logging.getLogger(__name__)
 
 class IntakeThrottle(AnonRateThrottle):
     rate = '5/min'
@@ -161,6 +164,52 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
+
+class DocumensoWebhookView(APIView):
+    """
+    Receives webhooks from Documenso when a document is signed.
+    Flips the associated matter to ACTIVE status.
+    """
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        payload = request.data
+        event_type = payload.get('type')
+        
+        # Documenso sends document.signed when all recipients have signed
+        if event_type in ('document.signed', 'document.completed'):
+            document_id = payload.get('documentId') or payload.get('data', {}).get('documentId')
+            
+            if not document_id:
+                return Response({"error": "Missing documentId"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            from core.models import Document as DocumentModel
+            from django.utils import timezone
+            
+            try:
+                doc = DocumentModel.objects.get(external_id=str(document_id))
+                doc.signed_at = timezone.now()
+                doc.save(update_fields=['signed_at'])
+                
+                # Flip the matter to ACTIVE
+                matter = doc.matter
+                matter.status = 'ACTIVE'
+                matter.save(update_fields=['status'])
+                
+                logger.info(
+                    f"Documenso webhook: Matter {matter.id} flipped to ACTIVE "
+                    f"(document {document_id} signed)"
+                )
+                
+                return Response({"status": "matter_activated"}, status=status.HTTP_200_OK)
+                
+            except DocumentModel.DoesNotExist:
+                logger.warning(f"Documenso webhook: unknown document {document_id}")
+                return Response({"status": "ignored"}, status=status.HTTP_200_OK)
+        
+        # Acknowledge all other events silently
+        return Response({"status": "received"}, status=status.HTTP_200_OK)
 
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]

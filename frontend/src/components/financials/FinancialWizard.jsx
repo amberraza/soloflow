@@ -44,10 +44,21 @@ const FinancialWizard = ({ isWidget = false }) => {
           setSubmitState('success');
           useFinancialStore.getState().reset();
           setTimeout(() => navigate('/dashboard'), 1200);
-        } else {
-          const err = await response.json();
+        } else if (response.status === 401) {
+          // Token expired or invalid — offer to log in
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
           setSubmitState('error');
-          setSubmitError(err.error || 'Failed to save case. Please try again.');
+          setSubmitError('Session expired. Please log in again.');
+        } else {
+          try {
+            const err = await response.json();
+            setSubmitState('error');
+            setSubmitError(err.error || err.detail || 'Failed to save case. Please try again.');
+          } catch {
+            setSubmitState('error');
+            setSubmitError('Server error. Please try again later.');
+          }
         }
       } catch (error) {
         setSubmitState('error');

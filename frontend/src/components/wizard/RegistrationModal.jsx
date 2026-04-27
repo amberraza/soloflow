@@ -41,7 +41,7 @@ const RegistrationModal = ({ isOpen, onClose }) => {
                 alert("Account created! Redirecting to dashboard...");
                 window.location.href = '/dashboard';
             } else {
-                setError(data.error || "Registration failed");
+                setError(data.error || data.detail || "Registration failed");
             }
         } catch (err) {
             setError("Network error. Please try again.");
